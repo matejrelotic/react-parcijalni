@@ -1,25 +1,50 @@
-import logo from './logo.svg';
+import React from 'react';
+import Button from 'react-bootstrap/Button';
+import { UserForm, GithubUser, GithubRepos } from './components';
+import { GithubApi } from './services';
+import 'bootstrap/dist/css/bootstrap.min.css';
+
 import './App.css';
 
-function App() {
-  return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
-  );
-}
+export default class App extends React.Component {
+  state = { user: null, repos: [] };
 
-export default App;
+  setUser = (userName) => {
+    Promise.all([GithubApi.getUser(userName), GithubApi.getUserRepos(userName)])
+      .then(([user, repos]) => this.setState({ user, repos }))
+      .catch((error) => alert(error));
+  };
+
+  handleResetUser = () => {
+    this.setState({ user: null });
+  };
+
+  render() {
+    const { user, repos } = this.state;
+
+    if (!user) {
+      return (
+        <div className="app">
+          <UserForm setUser={this.setUser} />
+        </div>
+      );
+    }
+
+    return (
+      <div className="app">
+        <GithubUser user={user} />
+        <GithubRepos repos={repos} />
+        <Button
+          variant="secondary"
+          onClick={this.handleResetUser}
+          type="submit"
+          size="lg"
+          block
+          className="mt-5"
+        >
+          Reset
+        </Button>
+      </div>
+    );
+  }
+}
